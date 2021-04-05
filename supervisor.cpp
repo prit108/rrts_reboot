@@ -1,9 +1,10 @@
-#include<bits/stdc++.h>
-
+#include <bits/stdc++.h>
 #include "user.hpp"
 #include "area.hpp"
+#include "city.hpp"
 #include "complaint.hpp"
 #include "supervisor.hpp"
+#include <sqlite3.h>
 using namespace std;
 
 string Supervisor::GetUserType() 
@@ -51,3 +52,92 @@ map<Complaint, int>& Supervisor::assignPriority()
 	}
 	return this->priority;
 }*/
+
+void Supervisor::SetComplaints(vector<Complaint> p) {
+	for(Complaint x : p) {
+		if(count(this->assignedAreas_.begin(), this->assignedAreas_.end() ,City::Mumbai().GetArea(x.GetRoad()))){
+			this->assignedComplaint_.push_back(x);
+		}
+	}
+	return;
+}
+
+int sup_callback(void* data, int argc, char** argv, char** azColName)
+{
+    string* retrieveinfo = static_cast<string*>(data);
+    for (int i = 0; i < argc; i++) {
+        retrieveinfo[i] = argv[i] ? argv[i] : "NULL";
+    }
+    //cerr<<retrieveinfo[0]<<"  "<<retrieveinfo[1];
+    /*
+    int i;
+    fprintf(stderr, "%s: ", (const char*)data);
+  
+    for (i = 0; i < argc; i++) {
+        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+    }
+  
+    printf("\n");
+    */
+    return 0;
+}
+
+bool Supervisor::GetAssignedAreaList(Supervisor& p) {
+	sqlite3* DB;
+    int exit = 0;
+    exit = sqlite3_open("./datafiles/supervisor_area_db.db", &DB);
+    string data[5];
+  
+    string sql("SELECT * FROM areaalloc WHERE userid == " + to_string(p.GetID()) +";");
+    if (exit) {
+        std::cerr << "Error open DB " << sqlite3_errmsg(DB) << std::endl;
+        return (-1);
+    }
+    else
+        std::cout << "Opened Database Successfully!" << std::endl;
+  
+    int rc = sqlite3_exec(DB, sql.c_str(), sup_callback, &data, NULL);
+  
+    if (rc != SQLITE_OK)
+        cerr << "Error SELECT" << endl;
+    else {
+        cout << "Operation OK!" << endl;
+		for(int i = 0; i < 5; i++) {
+			if(data[i] != "NULL") {
+				p.AddArea(City::Mumbai().GetAreaObject(data[i]));
+			}
+		}
+		return 1;
+    }
+  
+    sqlite3_close(DB);
+    return 0;
+}
+
+
+bool Supervisor::PushResourcesToDB(Complaint& p){
+	sqlite3* DB;
+    int exit = 0;
+    exit = sqlite3_open("./datafiles/supervisor_area_db.db", &DB);
+    string data[5];
+  
+    string sql("UPDATE freshcomplaints SET cement = " + to_string(get<0>(p.GetResources())) +", sand = " + to_string(get<1>(p.GetResources())) + ", labor = " + to_string(get<3>(p.GetResources())) + ", machine = " + to_string(get<4>(p.GetResources())) + ", slot = " + to_string(get<5>(p.GetResources())) + ", priority = " + to_string(p.GetPriority()) + " WHERE id == "+to_string(p.GetId()) + ";");
+    if (exit) {
+        std::cerr << "Error open DB " << sqlite3_errmsg(DB) << std::endl;
+        return (-1);
+    }
+    else
+        std::cout << "Opened Database Successfully!" << std::endl;
+  
+    int rc = sqlite3_exec(DB, sql.c_str(), sup_callback, &data, NULL);
+  
+    if (rc != SQLITE_OK)
+        cerr << "Error SELECT" << endl;
+    else {
+        cout << "Operation OK!" << endl;
+		return 1;
+    }
+  
+    sqlite3_close(DB);
+    return 0;
+}

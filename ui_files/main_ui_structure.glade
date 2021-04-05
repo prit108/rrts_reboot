@@ -324,6 +324,7 @@
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="placeholder-text" translatable="yes">User ID</property>
+            <property name="input-purpose">number</property>
           </object>
           <packing>
             <property name="left-attach">1</property>
@@ -343,10 +344,11 @@
           </packing>
         </child>
         <child>
-          <object class="GtkEntry" id="change_new_pass_entr">
+          <object class="GtkEntry" id="change_new_pass_entry">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="placeholder-text" translatable="yes">New Password</property>
+            <property name="input-purpose">password</property>
           </object>
           <packing>
             <property name="left-attach">1</property>
@@ -376,7 +378,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkLabel" id="change_new_pass_entry">
+          <object class="GtkLabel" id="change_new_pass_label">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">New Password</property>
@@ -457,16 +459,6 @@
           </packing>
         </child>
         <child>
-          <object class="GtkComboBox" id="spvsr_select_dropdown">
-            <property name="visible">True</property>
-            <property name="can-focus">False</property>
-          </object>
-          <packing>
-            <property name="left-attach">1</property>
-            <property name="top-attach">1</property>
-          </packing>
-        </child>
-        <child>
           <object class="GtkLabel" id="spvsr_select_label">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
@@ -481,7 +473,7 @@
           <object class="GtkEntry" id="cement_bags_entry">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
-            <property name="input-purpose">number</property>
+            <property name="input-purpose">digits</property>
           </object>
           <packing>
             <property name="left-attach">1</property>
@@ -492,6 +484,7 @@
           <object class="GtkEntry" id="sand_bags_entry">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
+            <property name="input-purpose">digits</property>
           </object>
           <packing>
             <property name="left-attach">1</property>
@@ -502,6 +495,7 @@
           <object class="GtkEntry" id="labor_entry">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
+            <property name="input-purpose">digits</property>
           </object>
           <packing>
             <property name="left-attach">1</property>
@@ -512,6 +506,7 @@
           <object class="GtkEntry" id="machine_entry">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
+            <property name="input-purpose">digits</property>
           </object>
           <packing>
             <property name="left-attach">1</property>
@@ -574,16 +569,6 @@
           </packing>
         </child>
         <child>
-          <object class="GtkEntry" id="slot_entry">
-            <property name="visible">True</property>
-            <property name="can-focus">True</property>
-          </object>
-          <packing>
-            <property name="left-attach">1</property>
-            <property name="top-attach">7</property>
-          </packing>
-        </child>
-        <child>
           <object class="GtkButton" id="assign_priority_btn">
             <property name="label" translatable="yes">Assign Priority</property>
             <property name="visible">True</property>
@@ -609,7 +594,6 @@
         <child>
           <object class="GtkLabel" id="spvsr_priority_msg">
             <property name="can-focus">False</property>
-            <property name="label" translatable="yes">Priorities Assignment Unsuccessful</property>
           </object>
           <packing>
             <property name="left-attach">0</property>
@@ -629,13 +613,37 @@
           </packing>
         </child>
         <child>
-          <object class="GtkComboBox" id="spvsr_priority_dropdown">
+          <object class="GtkComboBoxText" id="sup_assign_complaint_list">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+          </object>
+          <packing>
+            <property name="left-attach">1</property>
+            <property name="top-attach">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkComboBoxText" id="sup_assign_priority_list">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
           </object>
           <packing>
             <property name="left-attach">1</property>
             <property name="top-attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkComboBoxText" id="slot_dropdown">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <items>
+              <item translatable="yes">1</item>
+              <item translatable="yes">2</item>
+            </items>
+          </object>
+          <packing>
+            <property name="left-attach">1</property>
+            <property name="top-attach">7</property>
           </packing>
         </child>
         <child>

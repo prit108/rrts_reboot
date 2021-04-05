@@ -4,7 +4,7 @@
 #include <utility>
 #include <algorithm>
 #include <fstream>
-
+#include <sqlite3.h>
 using namespace std;
 
 #include "user.hpp"
@@ -23,7 +23,7 @@ int Admin::sMachines = 0;
 
 void Admin::InitStatic() {
 	fstream newfile;
-	newfile.open("resources.txt", ios::in);
+	newfile.open("./datafiles/resources.txt", ios::in);
 	if (newfile.is_open()) {
 		newfile >> sCementBags;
 		newfile >> sSandBags;
@@ -61,17 +61,17 @@ bool compareComplaints(pair<Complaint,int> C1, pair<Complaint,int> C2) {
 	else return false;
 }
 
-bool Admin::ResourcesAvailable(Complaint c){
+bool Admin::ResourcesAvailable(Complaint c) {
 	if (get<0>(c.GetResources()) > Admin::sCementBags || get<1>(c.GetResources()) > Admin::sSandBags || get<3>(c.GetResources()) > Admin::sWorkers || get<4>(c.GetResources()) > Admin::sMachines)
 		return false;
 	else return true;
 }
 
-vector<pair<Complaint,int> > Admin::Schedule(vector<Complaint>& comp) const {
+vector<pair<Complaint,int> > Admin::Schedule(vector<Complaint>& comp){
 	//Resources importance order: workers > machines > sand bags > cement bags
 	int i, j, n;
 	n = comp.size();
-	vector<pair<Complaint, int>> compAlloc;
+	vector<pair<Complaint, int> > compAlloc;
 	for (i = 0; i < n; i++) {
 		compAlloc.push_back(make_pair(comp[i], -1));
 	}
@@ -119,7 +119,7 @@ vector<pair<Complaint,int> > Admin::Schedule(vector<Complaint>& comp) const {
 	//updating resources i.e., cement bags and sand bags in resources file
 	fstream newfile;
 	int a, b;
-	newfile.open("resources.txt");
+	newfile.open("./datafiles/resources.txt");
 	if (newfile.is_open()) {
 		newfile >> a;
 		newfile >> b;
@@ -134,6 +134,7 @@ vector<pair<Complaint,int> > Admin::Schedule(vector<Complaint>& comp) const {
 		newfile << sMachines;
 		newfile << endl;
 		newfile.close();
+		InitStatic();
 	}
 	else {
 		cerr << "File containing resources data cannot be opened for updation" << endl;
@@ -141,8 +142,234 @@ vector<pair<Complaint,int> > Admin::Schedule(vector<Complaint>& comp) const {
 
 	return compAlloc;
 }
-/*
-// unit test
-int main () {
-	//Admin::CityAdmin().Schedule();
+sqlite3* db;
+
+int select1_callback(void *p_data, int num_fields, char **p_fields, char **p_col_names)
+{
+  vector<Complaint>* records = static_cast<vector<Complaint>*>(p_data);
+  try {
+    int id = atoi(p_fields[0]);
+	string road = (p_fields[1]);
+	int cement = atoi(p_fields[2]), sand = atoi(p_fields[3]),  labor = atoi(p_fields[4]), machine = atoi(p_fields[5]), slot = atoi(p_fields[6]), priority = atoi(p_fields[7]);
+	string matter = p_fields[8];
+	records->push_back(Complaint(id, road, matter, make_tuple(cement,sand,0,labor,machine,slot), priority, false));
+  }
+  catch (...) {
+    return 1;
+  }
+  return 0;
+}
+
+int select2_callback(void *p_data, int num_fields, char **p_fields, char **p_col_names)
+{
+  vector<Complaint>* records = static_cast<vector<Complaint>*>(p_data);
+  try {
+    int id = atoi(p_fields[0]);
+	string road = (p_fields[1]);
+	int cement = atoi(p_fields[2]), sand = atoi(p_fields[3]),  labor = atoi(p_fields[4]), machine = atoi(p_fields[5]), slot = atoi(p_fields[6]), priority = atoi(p_fields[7]);
+	string matter = p_fields[8];
+	records->push_back(Complaint(id, road, matter, make_tuple(cement,sand,0,labor,machine,slot), priority,true));
+  }
+  catch (...) {
+    return 1;
+  }
+  return 0;
+}
+
+vector<Complaint> select_stmt(const char* stmt, int p)
+{
+  vector<Complaint> records;  
+  char *errmsg;
+  int ret;
+  if(p)
+  ret = sqlite3_exec(db, stmt, select1_callback, &records, &errmsg);
+  else 
+  ret = sqlite3_exec(db, stmt, select2_callback, &records, &errmsg);
+  if (ret != SQLITE_OK) {
+    std::cerr << "Error in select statement " << stmt << "[" << errmsg << "]\n";
+  }
+  else {
+    std::cerr << records.size() << " records returned.\n";
+  }
+
+  return records;
+}
+
+void sql_stmt(const char* stmt)
+{
+  char *errmsg;
+  int ret = sqlite3_exec(db, stmt, 0, 0, &errmsg);
+  if (ret != SQLITE_OK) {
+    std::cerr << "Error in select statement " << stmt << "[" << errmsg << "]\n";
+  }
+}
+
+bool Admin::GetTodayComplaint(vector<Complaint>& today) {
+	if (sqlite3_open("./datafiles/complaints.db", &db) != SQLITE_OK) {
+    std::cerr << "Could not open database.\n";
+    return 0;
+  	}
+
+  	vector<Complaint> records1 = select_stmt("SELECT * FROM freshcomplaints",1);
+	sql_stmt("DELETE FROM freshcomplaints");
+	vector<Complaint> records2 = select_stmt("SELECT * FROM pendingcomplaints", 0);
+	sql_stmt("DELETE FROM pendingcomplaints");
+
+	for(Complaint x : records1) {
+		today.push_back(x);
+	}
+	for(Complaint x : records2) {
+		today.push_back(x);
+	}
+  	sqlite3_close(db);
+	  return 1;
+}
+
+
+vector<pair<Complaint, int> > Admin::ModifyResources(int cbags, int sbags, int workers, int machines, vector<Complaint>& comp) const{
+	//updating resources in resources file
+	fstream newfile;
+	newfile.open("./datafiles/resources.txt");
+	if (newfile.is_open()) {
+		newfile << cbags;
+		newfile << " ";
+		newfile << sbags;
+		newfile << " ";
+		newfile << workers;
+		newfile << " ";
+		newfile << machines;
+		newfile << endl;
+		newfile.close();
+		InitStatic();
+		return Schedule(comp);
+	}
+	else {
+		cerr << "File containing resources data cannot be opened for updation" << endl;
+	}
+}
+
+/*void Admin::UnitTestSchedule() {
+	//Test case 1
+	Complaint c1 = Complaint((City::Mumbai().GetAreaList())[0].GetListRoads()[0], "bad condition", false);
+	c1.SetPriority(1);
+	c1.SetResources(make_tuple(1,1,1,1,1,1));
+	Complaint c2 = Complaint((City::Mumbai().GetAreaList())[0].GetListRoads()[0], "bad condition", false);
+	c2.SetPriority(2);
+	c2.SetResources(make_tuple(1,1,1,1,1,1));
+	vector<Complaint> comp;
+	comp.push_back(c1);
+	comp.push_back(c2);
+	vector<pair<Complaint, int> > schedule = Admin::Schedule(comp);
+	if(schedule[0].first.GetId()==c1.GetId() && schedule[1].first.GetId()==c2.GetId())
+		cout<<"Correct Schedule obtained in Test case 1"<<endl;
+	else cerr<<"Wrong schedule obtained in Test case 1"<<endl;
+
+	//Test case 2
+	Complaint c1 = Complaint((City::Mumbai().GetAreaList())[1].GetListRoads()[0], "bad condition", false);
+	c1.SetPriority(1);
+	c1.SetResources(make_tuple(1,1,1,1,1,1));
+	Complaint c2 = Complaint((City::Mumbai().GetAreaList())[0].GetListRoads()[0], "bad condition", false);
+	c2.SetPriority(1);
+	c2.SetResources(make_tuple(1,1,1,1,1,1));
+	vector<Complaint> comp;
+	comp.push_back(c1);
+	comp.push_back(c2);
+	vector<pair<Complaint, int> > schedule = Admin::Schedule(comp);
+	if(schedule[0].first.GetId()==c1.GetId() && schedule[1].first.GetId()==c2.GetId())
+		cout<<"Correct Schedule obtained in Test case 2"<<endl;
+	else cerr<<"Wrong schedule obtained in Test case 2"<<endl;
+
+	//Test case 3
+	Complaint c1 = Complaint((City::Mumbai().GetAreaList())[0].GetListRoads()[0], "bad condition", true);
+	c1.SetPriority(1);
+	c1.SetResources(make_tuple(1,1,1,1,1,1));
+	Complaint c2 = Complaint((City::Mumbai().GetAreaList())[0].GetListRoads()[0], "bad condition", false);
+	c2.SetPriority(1);
+	c2.SetResources(make_tuple(1,1,1,1,1,1));
+	vector<Complaint> comp;
+	comp.push_back(c1);
+	comp.push_back(c2);
+	vector<pair<Complaint, int> > schedule = Admin::Schedule(comp);
+	if(schedule[0].first.GetId()==c1.GetId() && schedule[1].first.GetId()==c2.GetId())
+		cout<<"Correct Schedule obtained in Test case 3"<<endl;
+	else cerr<<"Wrong schedule obtained in Test case 3"<<endl;
+
+	//Test case 4
+	Complaint c1 = Complaint((City::Mumbai().GetAreaList())[0].GetListRoads()[0], "bad condition", true);
+	c1.SetPriority(1);
+	c1.SetResources(make_tuple(1,1,1,1,1,1));
+	Complaint c2 = Complaint((City::Mumbai().GetAreaList())[0].GetListRoads()[0], "bad condition", true);
+	c2.SetPriority(1);
+	c2.SetResources(make_tuple(2,1,1,1,2,1));
+	vector<Complaint> comp;
+	comp.push_back(c1);
+	comp.push_back(c2);
+	vector<pair<Complaint, int> > schedule = Admin::Schedule(comp);
+	if(schedule[0].first.GetId()==c1.GetId() && schedule[1].first.GetId()==c2.GetId())
+		cout<<"Correct Schedule obtained in Test case 4"<<endl;
+	else cerr<<"Wrong schedule obtained in Test case 4"<<endl;
+
+	//Test case 5
+	Complaint c1 = Complaint((City::Mumbai().GetAreaList())[0].GetListRoads()[0], "bad condition", false);
+	c1.SetPriority(1);
+	c1.SetResources(make_tuple(1,1,1,1,3,1));
+	Complaint c2 = Complaint((City::Mumbai().GetAreaList())[0].GetListRoads()[0], "bad condition", false);
+	c2.SetPriority(2);
+	c2.SetResources(make_tuple(1,1,1,1,1,2));
+	vector<Complaint> comp;
+	comp.push_back(c1);
+	comp.push_back(c2);
+	vector<pair<Complaint, int> > schedule = Admin::Schedule(comp);
+	if(schedule[0].first.GetId()==c1.GetId() && schedule[1].first.GetId()==c2.GetId() && schedule[0].second==0 && schedule[1].second==-1)
+		cout<<"Correct Schedule obtained in Test case 5"<<endl;
+	else cerr<<"Wrong schedule obtained in Test case 5"<<endl;
+
+	//Test case 6
+	Complaint c1 = Complaint((City::Mumbai().GetAreaList())[0].GetListRoads()[0], "bad condition", false);
+	c1.SetPriority(1);
+	c1.SetResources(make_tuple(30,1,1,1,1,1));
+	Complaint c2 = Complaint((City::Mumbai().GetAreaList())[0].GetListRoads()[0], "bad condition", false);
+	c2.SetPriority(2);
+	c2.SetResources(make_tuple(30,1,1,1,1,1));
+	vector<Complaint> comp;
+	comp.push_back(c1);
+	comp.push_back(c2);
+	vector<pair<Complaint, int> > schedule = Admin::Schedule(comp);
+	if(schedule[0].first.GetId()==c1.GetId() && schedule[1].first.GetId()==c2.GetId() && schedule[0].second==0 && schedule[1].second==-1)
+		cout<<"Correct Schedule obtained in Test case 6"<<endl;
+	else cerr<<"Wrong schedule obtained in Test case 6"<<endl;
+
+	//Test case 7
+	Complaint c1 = Complaint((City::Mumbai().GetAreaList())[0].GetListRoads()[0], "bad condition", false);
+	c1.SetPriority(2);
+	c1.SetResources(make_tuple(20,1,1,1,1,1));
+	Complaint c2 = Complaint((City::Mumbai().GetAreaList())[0].GetListRoads()[0], "bad condition", false);
+	c2.SetPriority(1);
+	c2.SetResources(make_tuple(40,1,1,1,1,1));
+	vector<Complaint> comp;
+	comp.push_back(c1);
+	comp.push_back(c2);
+	vector<pair<Complaint, int> > schedule = Admin::Schedule(comp);
+	if(schedule[0].first.GetId()==c1.GetId() && schedule[1].first.GetId()==c2.GetId() && schedule[0].second==0 && schedule[1].second==-1)
+		cout<<"Correct Schedule obtained in Test case 7"<<endl;
+	else cerr<<"Wrong schedule obtained in Test case 7"<<endl;
+
+	//Test case 8
+	Complaint c1 = Complaint((City::Mumbai().GetAreaList())[1].GetListRoads()[0], "bad condition", false);
+	c1.SetPriority(1);
+	c1.SetResources(make_tuple(2,1,1,1,1,1));
+	Complaint c2 = Complaint((City::Mumbai().GetAreaList())[0].GetListRoads()[0], "bad condition", true);
+	c2.SetPriority(1);
+	c2.SetResources(make_tuple(2,1,1,1,1,1));
+	Complaint c3 = Complaint((City::Mumbai().GetAreaList())[1].GetListRoads()[0], "bad condition", false);
+	c3.SetPriority(2);
+	c3.SetResources(make_tuple(2,2,1,1,1,1));
+	vector<Complaint> comp;
+	comp.push_back(c1);
+	comp.push_back(c2);
+	comp.push_back(c3);
+	vector<pair<Complaint, int> > schedule = Admin::Schedule(comp);
+	if(schedule[0].first.GetId()==c1.GetId() && schedule[1].first.GetId()==c2.GetId() && schedule[2].first.GetId()==c3.GetId())
+		cout<<"Correct Schedule obtained in Test case 8"<<endl;
+	else cerr<<"Wrong schedule obtained in Test case 8"<<endl;
 }*/

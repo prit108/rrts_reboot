@@ -17,8 +17,30 @@
 #include "admin.hpp"
 
 bool scheduling_done = false;
+bool assignment_done = false;
 bool complaints_added = false;
 User* currentUser;
+vector<Complaint> fresh_complaints;
+Supervisor* currSup;
+vector<Complaint> alltobedone;
+vector<pair<Complaint, int>> todayschedule;
+int count_done = 0;
+
+bool CheckPriority(const vector<Complaint>& comp) {
+    int i, n;
+    n=comp.size();
+    vector<int> assigned(n,0);
+    for(i=0;i<n;i++){
+        if(comp[i].GetPriority()<=0 || comp[i].GetPriority()>n)
+            return false;
+        else assigned[i-1]++;
+    }
+    for(i=0;i<n;i++){
+        if(assigned[i]!=1)
+            return false;
+    }
+    return true;
+}
 
 using namespace std;
 class RRTS : public Gtk::ApplicationWindow {
@@ -26,7 +48,9 @@ class RRTS : public Gtk::ApplicationWindow {
     Glib::RefPtr<Gtk::Builder> _builder;
     Gtk::Stack* all_stack;
     Gtk::Button* login_btn, *add_compmenu_btn, *add_comp_btn, *clerk_logout_btn, *clerk_changepass_btn, *sup_logout_btn, *admin_logout_btn;
-    Gtk::Button *sup_changepass_btn, *admin_changepass_btn, *change_cancel_btn;
+    Gtk::Button *sup_changepass_btn, *admin_changepass_btn, *change_cancel_btn, *change_pass_btn;
+    Gtk::Button *clerk_end_process_btn, *sup_assign_btn, *assign_priority_btn, *spvsr_end_process_btn;
+    Gtk::Button *sup_get_schedule;
     Gtk::ComboBoxText* clerk_road_dropdown;
     RRTS():_builder(Gtk::Builder::create_from_file("./ui_files/main_ui_structure.glade"))
     {
@@ -62,17 +86,34 @@ class RRTS : public Gtk::ApplicationWindow {
                 }
             }
 
+            _builder->get_widget("clerk_back_to_menu_btn", clerk_end_process_btn);
+            clerk_end_process_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::clerk_end_btn_clicked));
+
+
             _builder->get_widget("clerk_changepass_btn", clerk_changepass_btn);
-            clerk_changepass_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::changepass_btn_clicked));
+            clerk_changepass_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::passreq_btn_clicked));
 
             _builder->get_widget("sup_changepass_btn", sup_changepass_btn);
-            sup_changepass_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::changepass_btn_clicked));
+            sup_changepass_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::passreq_btn_clicked));
 
             _builder->get_widget("admin_changepass_btn", admin_changepass_btn);
-            admin_changepass_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::changepass_btn_clicked));
+            admin_changepass_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::passreq_btn_clicked));
 
              _builder->get_widget("change_cancel_btn", change_cancel_btn);
             change_cancel_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::changecancel_btn_clicked));
+
+            _builder->get_widget("change_pass_btn", change_pass_btn);
+            change_pass_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::changepass_btn_clicked));
+
+            _builder->get_widget("sup_assign_btn", sup_assign_btn);
+            sup_assign_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::supassign_btn_clicked));
+
+            _builder->get_widget("assign_priority_btn", assign_priority_btn);
+            assign_priority_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::assign_priority_btn_clicked));
+
+            
+            _builder->get_widget("spvsr_end_process_btn", spvsr_end_process_btn);
+            spvsr_end_process_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::spvsr_end_process_btn_clicked));
         }
         set_title("RRTS");
         set_default_size(500,500);
@@ -136,10 +177,12 @@ class RRTS : public Gtk::ApplicationWindow {
             Gtk::Entry* matter;
             _builder->get_widget("clerk_complaint_matter_entry", matter);
             string mattertext = matter->get_text();
-            if(Clerk::AddComplaintToDB(Complaint(City::Mumbai().GetRoadObject(road), mattertext))) {
+            Complaint p(City::Mumbai().GetRoadObject(road), mattertext);
+            if(Clerk::AddComplaintToDB(p)) {
                 Gtk::Label* m;
                 _builder->get_widget("clerk_add_err_msg_label", m);
                 m->set_text("Successfully added complaint.");
+                fresh_complaints.push_back(p);
             }
             else {
                 Gtk::Label* m;
@@ -167,9 +210,16 @@ class RRTS : public Gtk::ApplicationWindow {
         p->set_text("");
     }
 
-    void changepass_btn_clicked() {
+
+    void passreq_btn_clicked() {
         Gtk::StackTransitionType ttype = Gtk::STACK_TRANSITION_TYPE_NONE;
         all_stack->set_visible_child("page3",ttype);
+    }
+
+    void changepass_btn_clicked() {
+        Gtk::Label *p;
+        _builder->get_widget("change_pass_msg_label", p);
+        p->set_text("");
         Gtk::Entry *user,*oldpassbox, *newpassbox;
         _builder->get_widget("change_pass_user_entry", user);
         // by design only numeric values are entered into the user entry field so no exception handling required
@@ -180,8 +230,6 @@ class RRTS : public Gtk::ApplicationWindow {
         string oldpassword = oldpassbox->get_text();
         string newpassword = newpassbox->get_text();
         string usertype, username;
-        Gtk::Label *p;
-        _builder->get_widget("change_pass_msg_label", p);
         if(User::IsValidLogin(user_id, oldpassword, usertype, username)) {
             if(User::UpdatePassword(user_id, newpassword)) {
                 p->set_text("Password Changed Successfully");
@@ -211,6 +259,109 @@ class RRTS : public Gtk::ApplicationWindow {
             all_stack->set_visible_child("page9",ttype);
         }
     }
+
+
+    void clerk_end_btn_clicked() {
+        complaints_added = true;
+        Gtk::StackTransitionType ttype = Gtk::STACK_TRANSITION_TYPE_NONE;
+        all_stack->set_visible_child("page1",ttype);
+    }
+
+    void supassign_btn_clicked() {
+        if(!complaints_added || assignment_done) {
+            Gtk::Label *p;
+            _builder->get_widget("sup_add_comp_msg", p);
+            p->set_text("Complaints are yet to be added. Please wait. Contact office for more details.");
+        }
+        else {
+            bool safe = true;
+            currSup = new Supervisor(currentUser->GetName(), currentUser->GetID(), currentUser->GetPassword());
+            if(!Supervisor::GetAssignedAreaList(*currSup)) {
+                cerr<<"ERROR::Database error, aborting."<<endl;
+                safe = false;
+            }
+            Gtk::StackTransitionType ttype = Gtk::STACK_TRANSITION_TYPE_NONE;
+            if(!safe) return;
+            else {
+                currSup->SetComplaints(fresh_complaints);
+                Gtk::ComboBoxText* sup_assign_complaint_list, *sup_assign_priority_list; 
+                _builder->get_widget("sup_assign_complaint_list", sup_assign_complaint_list);
+                _builder->get_widget("sup_assign_priority_list", sup_assign_priority_list);
+                int i = 1;
+                for(Complaint c: currSup->GetAssignedComplaints()) {
+                    sup_assign_complaint_list->append(c.ToString());
+                    sup_assign_priority_list->append(to_string(i));
+                    i++;
+                }
+                all_stack->set_visible_child("page4",ttype);
+                return;
+            }
+        }
+    }
+
+    void assign_priority_btn_clicked () {
+        Gtk::ComboBoxText* sup_complaint_list, *sup_priority_list, *sup_slot_list;
+        _builder->get_widget("sup_assign_priority_list", sup_priority_list);
+        _builder->get_widget("sup_assign_complaint_list", sup_complaint_list);
+        _builder->get_widget("slot_dropdown", sup_slot_list);
+        Gtk::Entry* cement, *sand, *labor, *machine;
+        _builder->get_widget("cement_bags_entry", cement);
+        _builder->get_widget("sand_bags_entry", sand);
+        _builder->get_widget("labor_entry", labor);
+        _builder->get_widget("machine_entry", machine);
+        string complaint = sup_complaint_list->get_active_text();
+        int priority = atoi(sup_priority_list->get_active_text().c_str());
+        int slot = atoi(sup_slot_list->get_active_text().c_str());
+        int cement_bags = atoi(cement->get_text().c_str());
+        int sand_bags = atoi(sand->get_text().c_str());
+        int labourers = atoi(labor->get_text().c_str());
+        int machines = atoi(machine->get_text().c_str());
+        if(cement_bags < 0 || sand_bags < 0 || labourers <0 || machines < 0)
+        {
+            Gtk::Label *p;
+            _builder->get_widget("spvsr_priority_msg", p);
+            p->set_text("Invalid resource inputs.");
+            return;
+        }
+        currSup->GetThisComplaint(complaint).SetResources(make_tuple(cement_bags, sand_bags, 0, labourers, machines, slot));
+        currSup->GetThisComplaint(complaint).SetPriority(priority);
+
+    }
+
+    void spvsr_end_process_btn_clicked() {
+        if(CheckPriority(currSup->GetAssignedComplaints()))
+        {   
+            bool flag = true;
+            for(Complaint x : currSup->GetAssignedComplaints()) {
+                count_done++;
+                if(!Supervisor::PushResourcesToDB(x)) {
+                    cerr<<"Database Error"<<endl;
+                    flag = false;
+                }
+            }
+            if(flag) {
+                Gtk::StackTransitionType ttype = Gtk::STACK_TRANSITION_TYPE_NONE;
+                all_stack->set_visible_child("page7",ttype);
+                if(count_done == fresh_complaints.size())
+                    {
+                        assignment_done = true;
+                        Admin::GetTodayComplaint(alltobedone);
+                        todayschedule = Admin::Schedule(alltobedone);
+                        scheduling_done = true;
+                    }
+            }
+        }
+        else {
+            Gtk::Label *p;
+            _builder->get_widget("spvsr_priority_msg", p);
+            p->set_text("Invalid Priority Assignment. Not saved.");
+            delete currSup;
+        }   
+    }
+
+
+
+
 };
 
 

@@ -1,5 +1,5 @@
-#ifndef CITY_CPP
-#define CITY_CPP
+#ifndef CITY_HPP
+#define CITY_HPP
 #include <iostream>
 #include <string>
 #include <vector>
@@ -34,6 +34,16 @@ public:
             }
         }
     }
+    Area GetAreaObject(string ar) const {
+        for (Area x : this->areas_){
+            if(x.GetName() == ar) {
+                return x;
+            }
+        }
+    }
+    vector<Area> GetAreaList() const {
+        return this->areas_;
+    }
     friend ostream& operator<<(ostream& os, const City& city) {
         os << "City Area List : " << endl;
         for(Area x : city.areas_) {
@@ -43,4 +53,4 @@ public:
     }
 };
 
-#endif //CITY_CPP
+#endif //CITY_HPP

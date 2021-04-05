@@ -39,6 +39,11 @@ public:
     bool IncludesRoad(const Road& rd) {
         return !(find(this->roads_.begin(), this->roads_.end(), rd) == this->roads_.end());
     }
+
+    friend bool operator==(const Area& r1, const Area& r2) {
+        return r1.id_ == r2.id_ ;
+    }
+
     friend ostream& operator<<(ostream& os, const Area& a) {
         os << "Area:" << a.name_ << ", ID:" <<a.id_<< ", Type:"<<a.type_;
         return os; 

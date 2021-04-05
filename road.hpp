@@ -32,7 +32,7 @@ public:
     }
 
     friend ostream& operator<<(ostream& os, const Road& p) {
-        os << p.name_ << " Road " << " : Id " << p.id_;
+        os << p.name_ << " Road" << "(Id:" << p.id_<<")";
         return os; 
     }
 };

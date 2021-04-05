@@ -38,10 +38,12 @@ public:
 	}*/
 	string GetUserType();
 	static bool ResourcesAvailable(Complaint c);
-	vector<pair<Complaint,int> > Schedule(vector<Complaint>& comp) const;
-	void ModifyResources() const;
+	static vector<pair<Complaint,int> > Schedule(vector<Complaint>& comp);
+	vector<pair<Complaint, int> > ModifyResources(int cbags, int sbags, int workers, int machines, vector<Complaint>& comp) const;
 	void ChangeAreaAlloc() const;
 	void AddSupervisor() const;
+	static bool GetTodayComplaint(vector<Complaint>& today);
+	//static void UnitTestSchedule();
 };
 
 #endif //ADMIN_HPP

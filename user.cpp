@@ -69,7 +69,7 @@ bool User::UpdatePassword(int userid, const string& password) {
     exit = sqlite3_open("./datafiles/logindb.db", &DB);
     string data[2];
   
-    string sql("UPDATE userlogin set password = "+ password +" WHERE userid == " + to_string(userid));
+    string sql("UPDATE userlogin set password = \""+ password +"\" WHERE userid == " + to_string(userid));
     if (exit) {
         std::cerr << "Error open DB " << sqlite3_errmsg(DB) << std::endl;
         return (0);

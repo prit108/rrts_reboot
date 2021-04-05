@@ -21,6 +21,9 @@ class User
 		int GetID() {
 			return this->userId_;
 		}
+		const string& GetPassword() {
+			return this->password_;
+		}
 		//virtual bool IsUser(int x,string s);
 		virtual string GetUserType() = 0;
 		void SetPassword(string p);
