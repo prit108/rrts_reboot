@@ -3,31 +3,15 @@
 #include "user.hpp"
 #include "area.hpp"
 #include "complaint.hpp"
+#include "supervisor.hpp"
 using namespace std;
 
-class Supervisor : public User
+string Supervisor::GetUserType() 
 {
-	vector <Area> assignedAreas;
-	vector <Complaint> assignedComplaints;
-	map<Complaint,int> priority;
-	int size = 0; 
-public:
-	Supervisor() {}
+	return ("Supervisor");
+} 
 
-	bool IsUser(int x,string s)
-	{
-		if((x==(this->userId_)) && (s == (this->password_)))
-			return true;
-		else
-			return false;
-	}
-
-	string GetUserType() 
-	{
-		return ("Supervisor");
-	} 
-
-	void GetNewComplaint(Complaint c)
+/*void Supervisor::GetNewComplaint(Complaint c)
 	{
 		assignedComplaints.push_back(c);
 		int c_bag,s_bags,workers,machines,slots; double water;
@@ -51,27 +35,19 @@ public:
 
 		this->size++;
 
-		} 
+		} */
+/*
+map<Complaint, int>& Supervisor::assignPriority()
+{
+	int p; 
+	cout<<"Give priority of each complaint between 1 and "<<size<<" "<<'\n';
+	for(int i=0;i<this->size;i++)
+	{
+		p = 0;
+		cout<<"Complaint "<< i+1<<'\n';
+		cin >> p;
 
-		map<Complaint, int>& assignPriority()
-		{
-		  int p; 
-		  cout<<"Give priority of each complaint between 1 and "<<size<<" "<<'\n';
-		  for(int i=0;i<this->size;i++)
-		  {
-		  	p = 0;
-		  	cout<<"Complaint "<< i+1<<'\n';
-		  	cin >> p;
-
-		  	this->priority[assignedComplaints[i]] = p;;
-		  }
-		  return this->priority;
-		}
-
-	
-		~Supervisor()
-		{
-
-		}
-
-};
+		this->priority[assignedComplaints[i]] = p;;
+	}
+	return this->priority;
+}*/

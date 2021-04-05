@@ -12,7 +12,7 @@
 #include "city.hpp"
 #include "complaint.hpp"
 #include "user.hpp"
-#include "Admin.hpp"
+#include "admin.hpp"
 
 bool scheduling_done = false;
 bool complaints_added = false;

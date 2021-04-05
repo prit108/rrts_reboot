@@ -32,10 +32,10 @@ public:
 		InitStatic();
 		return theObject;
 	}
-	bool IsUser(int x, string s) {
+	/*bool IsUser(int x, string s) {
 		return true;
-		/*To be changed later*/
-	}
+		//To be changed later
+	}*/
 	string GetUserType();
 	static bool ResourcesAvailable(Complaint c);
 	vector<pair<Complaint,int> > Schedule(vector<Complaint>& comp) const;

@@ -13,15 +13,15 @@ class User
 		string password_;
 
 	public: 
-		User(string n,int uid,string p): name_(n),userId_(uid),password_(p) {}
-		~User() {}
+		User(string n,int uid, string p): name_(n),userId_(uid),password_(p) {}
+		virtual ~User() {}
 		const string& GetName() {
 			return this->name_;
 		}
 		int GetID() {
 			return this->userId_;
 		}
-		virtual bool IsUser(int x,string s) = 0;
+		//virtual bool IsUser(int x,string s);
 		virtual string GetUserType() = 0;
 		void SetPassword(string p);
 		static bool IsValidLogin(int userid, const string& password, string& type, string& name);
