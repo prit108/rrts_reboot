@@ -26,6 +26,7 @@ class User
 		void SetPassword(string p);
 		static bool IsValidLogin(int userid, const string& password, string& type, string& name);
 		static bool UpdatePassword(int userid, const string& password);
+		static int password_callback(void* data, int argc, char** argv, char** azColName);
 };
 
 #endif

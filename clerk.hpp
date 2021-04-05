@@ -1,4 +1,3 @@
-
 #ifndef CLERK_HPP
 #define CLERK_HPP
 
@@ -14,6 +13,7 @@ class Clerk : public User
         User(n,uid,passwd){}
 		string GetUserType();
 		~Clerk() {}
+        static bool AddComplaintToDB(Complaint p);
 };
 
 #endif //CLERK_HPP

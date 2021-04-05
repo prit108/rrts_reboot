@@ -25,6 +25,15 @@ public:
                 return x;
         }        
     }
+    Road GetRoadObject(string rd) const{
+        for (Area x : this->areas_){
+            for(Road y : x.GetListRoads()) {
+                if(y.ToString() == rd) {
+                    return y;
+                } 
+            }
+        }
+    }
     friend ostream& operator<<(ostream& os, const City& city) {
         os << "City Area List : " << endl;
         for(Area x : city.areas_) {

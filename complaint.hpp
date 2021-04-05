@@ -13,15 +13,16 @@ class Complaint {
     tuple <int, int, double, int, int, int> resources_; //(cement bags, sand bags, water, workers, machines, slots)
     int priority_;
     bool isPending_;
+    static int sComplaintCount;
 public:
-    Complaint(const int id, const Road& road, const string& matter, const bool isPending);
-
+    Complaint(const Road& road, const string& matter, const bool isPending = false);
+    Complaint(const int id, const Road& road, const string& matter, const bool isPending = false);
     Complaint(const Complaint& c):
     id_(c.id_), road_(c.road_), matter_(c.matter_), resources_(c.resources_), priority_(c.priority_), isPending_(c.isPending_) {}
 
     ~Complaint () {}
 
-    const Road& GetRoad() {
+    Road GetRoad() {
         return this->road_;
     }
 

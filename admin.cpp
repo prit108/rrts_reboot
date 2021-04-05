@@ -141,8 +141,8 @@ vector<pair<Complaint,int> > Admin::Schedule(vector<Complaint>& comp) const {
 
 	return compAlloc;
 }
-
+/*
 // unit test
 int main () {
 	//Admin::CityAdmin().Schedule();
-}
+}*/

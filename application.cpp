@@ -12,17 +12,21 @@
 #include "city.hpp"
 #include "complaint.hpp"
 #include "user.hpp"
+#include "clerk.hpp"
+#include "supervisor.hpp"
 #include "admin.hpp"
 
 bool scheduling_done = false;
 bool complaints_added = false;
+User* currentUser;
 
 using namespace std;
 class RRTS : public Gtk::ApplicationWindow {
     public: 
     Glib::RefPtr<Gtk::Builder> _builder;
     Gtk::Stack* all_stack;
-    Gtk::Button* login_btn, *add_compmenu_btn, *add_comp_btn, *clerk_logout_btn, *clerk_changepass_btn;
+    Gtk::Button* login_btn, *add_compmenu_btn, *add_comp_btn, *clerk_logout_btn, *clerk_changepass_btn, *sup_logout_btn, *admin_logout_btn;
+    Gtk::Button *sup_changepass_btn, *admin_changepass_btn, *change_cancel_btn;
     Gtk::ComboBoxText* clerk_road_dropdown;
     RRTS():_builder(Gtk::Builder::create_from_file("./ui_files/main_ui_structure.glade"))
     {
@@ -45,6 +49,12 @@ class RRTS : public Gtk::ApplicationWindow {
             _builder->get_widget("clerk_logout_btn", clerk_logout_btn);
             clerk_logout_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::logout_btn_clicked));
 
+            _builder->get_widget("sup_logout_btn", sup_logout_btn);
+            sup_logout_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::logout_btn_clicked));
+
+            _builder->get_widget("admin_logout_btn", admin_logout_btn);
+            admin_logout_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::logout_btn_clicked));
+
             _builder->get_widget("clerk_road_dropdown", clerk_road_dropdown);
             for(Area c: City::sAreaList) {
                 for(Road p : c.GetListRoads()) {
@@ -52,9 +62,17 @@ class RRTS : public Gtk::ApplicationWindow {
                 }
             }
 
-            
             _builder->get_widget("clerk_changepass_btn", clerk_changepass_btn);
             clerk_changepass_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::changepass_btn_clicked));
+
+            _builder->get_widget("sup_changepass_btn", sup_changepass_btn);
+            sup_changepass_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::changepass_btn_clicked));
+
+            _builder->get_widget("admin_changepass_btn", admin_changepass_btn);
+            admin_changepass_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::changepass_btn_clicked));
+
+             _builder->get_widget("change_cancel_btn", change_cancel_btn);
+            change_cancel_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::changecancel_btn_clicked));
         }
         set_title("RRTS");
         set_default_size(500,500);
@@ -74,21 +92,20 @@ class RRTS : public Gtk::ApplicationWindow {
         if(User::IsValidLogin(user_id, password, usertype, username)) {
             if(usertype == "clerk") {
                 all_stack->set_visible_child("page1", ttype);
+                currentUser = new Clerk(username, user_id, password);
             }
             else if(usertype == "supervisor")
             {
-                if(scheduling_done){
-                    all_stack->set_visible_child("page5", ttype);
-                }
-                else {
-                    all_stack->set_visible_child("page4", ttype);
-                }
+                currentUser = new Supervisor(username, user_id, password);
+                all_stack->set_visible_child("page7", ttype);
             } 
             else if(usertype == "admin") {
-                all_stack->set_visible_child("page6", ttype);
+                *currentUser = Admin::CityAdmin(username, user_id, password);
+                all_stack->set_visible_child("page8", ttype);
             }
             else {
-                all_stack->set_visible_child("page6", ttype);
+                //Mayor functions
+                all_stack->set_visible_child("page9", ttype);
             }
         }
         else{ 
@@ -112,13 +129,14 @@ class RRTS : public Gtk::ApplicationWindow {
     }
 
     void addcomp_btn_clicked () {
-        Glib::ustring selection = clerk_road_dropdown->get_active_text();
-        if(selection != nullptr) {
+        string selection = clerk_road_dropdown->get_active_text();
+        cerr<<selection;
+        if(selection.length() != 0) {
             string road = (string)selection;
             Gtk::Entry* matter;
             _builder->get_widget("clerk_complaint_matter_entry", matter);
-            string mattertext = ->get_text();
-            if(Clerk::AddComplaintToDB(road, mattertext)) {
+            string mattertext = matter->get_text();
+            if(Clerk::AddComplaintToDB(Complaint(City::Mumbai().GetRoadObject(road), mattertext))) {
                 Gtk::Label* m;
                 _builder->get_widget("clerk_add_err_msg_label", m);
                 m->set_text("Successfully added complaint.");
@@ -176,8 +194,22 @@ class RRTS : public Gtk::ApplicationWindow {
         else{
             p->set_text("Invalid credentials.");
         }
+    }
 
-
+    void changecancel_btn_clicked() {
+        Gtk::StackTransitionType ttype = Gtk::STACK_TRANSITION_TYPE_NONE;
+        if(currentUser->GetUserType() == "Clerk") {
+            all_stack->set_visible_child("page1",ttype);
+        } 
+        else if(currentUser->GetUserType() == "Supervisor") {
+            all_stack->set_visible_child("page7",ttype);
+        }
+        else if(currentUser->GetUserType() == "Admin") {
+            all_stack->set_visible_child("page8",ttype);
+        }
+        else if(currentUser->GetUserType() == "Mayor") {
+            all_stack->set_visible_child("page9",ttype);
+        }
     }
 };
 

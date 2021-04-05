@@ -819,8 +819,8 @@ Bags:</property>
       </packing>
     </child>
     <child>
-      <!-- n-columns=1 n-rows=5 -->
-      <object class="GtkGrid" id="sup_mainmenu_grid1">
+      <!-- n-columns=1 n-rows=6 -->
+      <object class="GtkGrid" id="sup_mainmenu_grid">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="row-spacing">24</property>
@@ -839,30 +839,6 @@ Bags:</property>
           </packing>
         </child>
         <child>
-          <object class="GtkButton" id="sup_logout_btn">
-            <property name="label" translatable="yes">Logout</property>
-            <property name="visible">True</property>
-            <property name="can-focus">True</property>
-            <property name="receives-default">True</property>
-          </object>
-          <packing>
-            <property name="left-attach">0</property>
-            <property name="top-attach">4</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkButton" id="sup_changepass_btn">
-            <property name="label" translatable="yes">Change Password</property>
-            <property name="visible">True</property>
-            <property name="can-focus">True</property>
-            <property name="receives-default">True</property>
-          </object>
-          <packing>
-            <property name="left-attach">0</property>
-            <property name="top-attach">3</property>
-          </packing>
-        </child>
-        <child>
           <object class="GtkButton" id="sup_assign_btn">
             <property name="label" translatable="yes">Assign Priorities and Allot Resources</property>
             <property name="visible">True</property>
@@ -875,7 +851,7 @@ Bags:</property>
           </packing>
         </child>
         <child>
-          <object class="GtkLabel" id="clerk_add_comp_msg1">
+          <object class="GtkLabel" id="sup_add_comp_msg">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
           </object>
@@ -884,11 +860,132 @@ Bags:</property>
             <property name="top-attach">1</property>
           </packing>
         </child>
+        <child>
+          <object class="GtkButton" id="sup_logout_btn">
+            <property name="label" translatable="yes">Logout</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+          </object>
+          <packing>
+            <property name="left-attach">0</property>
+            <property name="top-attach">5</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="sup_changepass_btn">
+            <property name="label" translatable="yes">Change Password</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+          </object>
+          <packing>
+            <property name="left-attach">0</property>
+            <property name="top-attach">4</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="show_schedule_btn">
+            <property name="label" translatable="yes">Show Schedule</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+          </object>
+          <packing>
+            <property name="left-attach">0</property>
+            <property name="top-attach">3</property>
+          </packing>
+        </child>
       </object>
       <packing>
         <property name="name">page7</property>
         <property name="title" translatable="yes">page7</property>
         <property name="position">7</property>
+      </packing>
+    </child>
+    <child>
+      <!-- n-columns=1 n-rows=6 -->
+      <object class="GtkGrid" id="admin_mainmenu_grid">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="row-spacing">24</property>
+        <property name="column-spacing">61</property>
+        <property name="row-homogeneous">True</property>
+        <property name="column-homogeneous">True</property>
+        <child>
+          <object class="GtkLabel" id="admin_mainmenu_label">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Welcome Admin!!</property>
+          </object>
+          <packing>
+            <property name="left-attach">0</property>
+            <property name="top-attach">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="admin_upd_btn">
+            <property name="label" translatable="yes">Update Resources</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+          </object>
+          <packing>
+            <property name="left-attach">0</property>
+            <property name="top-attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="admin_menu_msg">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+          </object>
+          <packing>
+            <property name="left-attach">0</property>
+            <property name="top-attach">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="admin_logout_btn">
+            <property name="label" translatable="yes">Logout</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+          </object>
+          <packing>
+            <property name="left-attach">0</property>
+            <property name="top-attach">5</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="admin_changepass_btn">
+            <property name="label" translatable="yes">Change Password</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+          </object>
+          <packing>
+            <property name="left-attach">0</property>
+            <property name="top-attach">4</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="admin_add_supervisor_btn">
+            <property name="label" translatable="yes">Add Supervisor</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+          </object>
+          <packing>
+            <property name="left-attach">0</property>
+            <property name="top-attach">3</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="name">page8</property>
+        <property name="title" translatable="yes">page8</property>
+        <property name="position">8</property>
       </packing>
     </child>
   </object>

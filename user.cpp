@@ -9,7 +9,7 @@ void User::SetPassword (const string p) {
     this->password_ = p;
 }
 
-int password_callback(void* data, int argc, char** argv, char** azColName)
+int User::password_callback(void* data, int argc, char** argv, char** azColName)
 {
     string* retrieveinfo = static_cast<string*>(data);
     retrieveinfo[0] = string(argv[2]);
@@ -80,7 +80,7 @@ bool User::UpdatePassword(int userid, const string& password) {
     int rc = sqlite3_exec(DB, sql.c_str(), password_callback, &data, NULL);
     sqlite3_close(DB);
     if (rc != SQLITE_OK)
-        cerr << "Error SELECT" << endl;
+        cerr << "Error Update Password" << endl;
     else {
         cout << "Operation OK!" << endl;
         return 1;
