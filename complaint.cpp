@@ -10,7 +10,7 @@ int Complaint::sComplaintCount = 0;
 
 Complaint::Complaint(const Road& road, const string& matter, const bool isPending):
 road_(road), matter_(matter), resources_(make_tuple(0,0,0,0,0,0)), isPending_(isPending) {
-    fstream countfile;
+    ifstream countfile;
     countfile.open("./datafiles/complaintcount.txt");
     if(!countfile.is_open()) {
         cerr<<"FATAL ERROR:: complaintcount.txt cannnot be opened."<<endl;
@@ -22,7 +22,7 @@ road_(road), matter_(matter), resources_(make_tuple(0,0,0,0,0,0)), isPending_(is
     this->id_ = cnt;
     countfile.close();
     fstream changecnt;
-    changecnt.open("./datafiles/complaintcount.txt", ios::trunc);
+    changecnt.open("./datafiles/complaintcount.txt", ios::trunc | ios::out);
     if(!changecnt.is_open()) {
         cerr<<"FATAL ERROR:: complaintcount.txt cannnot be opened."<<endl;
         exit(1);
@@ -34,3 +34,9 @@ road_(road), matter_(matter), resources_(make_tuple(0,0,0,0,0,0)), isPending_(is
 
 Complaint::Complaint(const int id, const Road& road, const string& matter, const bool isPending):
 id_(id), road_(road), matter_(matter), resources_(make_tuple(0,0,0,0,0,0)), isPending_(isPending) {}
+
+/*
+int main () {
+    cout << Complaint(Road("p"), "large holes");
+
+}*/
