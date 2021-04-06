@@ -229,11 +229,11 @@ bool Admin::GetTodayComplaint(vector<Complaint>& today) {
 
   	vector<Complaint> records1 = select_stmt("SELECT * FROM freshcomplaints;",1);
 	cerr<<"Fetched frshcomplaints"<<endl;
-	//sql_stmt("DELETE FROM freshcomplaints;");
+	sql_stmt("DELETE FROM freshcomplaints;");
 	cerr<<"Cleared frsh list"<<endl;
 	vector<Complaint> records2 = select_stmt("SELECT * FROM pendingcomplaints;", 0);
 	cerr<<"Fetched pendcomplaints"<<endl;
-	//sql_stmt("DELETE FROM pendingcomplaints;");
+	sql_stmt("DELETE FROM pendingcomplaints;");
 	cerr<<"Cleared pend list"<<endl;
 
 	for(Complaint x : records1) {
