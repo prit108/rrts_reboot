@@ -56,7 +56,7 @@ map<Complaint, int>& Supervisor::assignPriority()
 void Supervisor::SetComplaints(vector<Complaint> p) {
 	for(Complaint x : p) {
 		if(count(this->assignedAreas_.begin(), this->assignedAreas_.end() ,City::Mumbai().GetArea(x.GetRoad()))){
-			this->assignedComplaint_.push_back(x);
+			this->assignedComplaint_.push_back(Complaint(x));
 		}
 	}
 	return;
@@ -65,8 +65,9 @@ void Supervisor::SetComplaints(vector<Complaint> p) {
 int sup_callback(void* data, int argc, char** argv, char** azColName)
 {
     string* retrieveinfo = static_cast<string*>(data);
-    for (int i = 0; i < argc; i++) {
-        retrieveinfo[i] = argv[i] ? argv[i] : "NULL";
+    cerr<<argc<<" "<<argv[0]<<endl;
+    for (int i = 1; i < argc; i++) {
+        retrieveinfo[i-1] = argv[i] ? argv[i] : "NULL";
     }
     //cerr<<retrieveinfo[0]<<"  "<<retrieveinfo[1];
     /*
@@ -83,12 +84,13 @@ int sup_callback(void* data, int argc, char** argv, char** azColName)
 }
 
 bool Supervisor::GetAssignedAreaList(Supervisor& p) {
+    cerr<<"in GETASSIGNEDAREALIST"<<endl;
 	sqlite3* DB;
     int exit = 0;
     exit = sqlite3_open("./datafiles/supervisor_area_db.db", &DB);
-    string data[5];
+    string data[6] = {"", "", "", "", "", ""};
   
-    string sql("SELECT * FROM areaalloc WHERE userid == " + to_string(p.GetID()) +";");
+    string sql("SELECT * FROM areaalloc WHERE supervisorId == " + to_string(p.GetID()) +";");
     if (exit) {
         std::cerr << "Error open DB " << sqlite3_errmsg(DB) << std::endl;
         return (-1);
@@ -118,8 +120,8 @@ bool Supervisor::GetAssignedAreaList(Supervisor& p) {
 bool Supervisor::PushResourcesToDB(Complaint& p){
 	sqlite3* DB;
     int exit = 0;
-    exit = sqlite3_open("./datafiles/supervisor_area_db.db", &DB);
-    string data[5];
+    exit = sqlite3_open("./datafiles/complaints.db", &DB);
+    string data[6];
   
     string sql("UPDATE freshcomplaints SET cement = " + to_string(get<0>(p.GetResources())) +", sand = " + to_string(get<1>(p.GetResources())) + ", labor = " + to_string(get<3>(p.GetResources())) + ", machine = " + to_string(get<4>(p.GetResources())) + ", slot = " + to_string(get<5>(p.GetResources())) + ", priority = " + to_string(p.GetPriority()) + " WHERE id == "+to_string(p.GetId()) + ";");
     if (exit) {
@@ -140,4 +142,12 @@ bool Supervisor::PushResourcesToDB(Complaint& p){
   
     sqlite3_close(DB);
     return 0;
+}
+
+Supervisor Supervisor::GetAreaSupervisor(vector<Supervisor>& p, Area ar) {
+    for(Supervisor x : p) {
+        if(find(x.GetAssignedAreas().begin(), x.GetAssignedAreas().end(), ar) != x.GetAssignedAreas().end()){
+            return x;
+        }
+    }
 }

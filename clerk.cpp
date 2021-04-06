@@ -42,7 +42,7 @@ bool Clerk::AddComplaintToDB(Complaint p) {
 		sqlite3_free(zErrMsg);
 	}
     else {
-        cout << "Operation OK!" << endl;
+        cout << "Operation add complaint OK!" << endl;
 		return 1;
     }
   

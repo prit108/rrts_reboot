@@ -14,6 +14,7 @@ int User::password_callback(void* data, int argc, char** argv, char** azColName)
     string* retrieveinfo = static_cast<string*>(data);
     retrieveinfo[0] = string(argv[2]);
     retrieveinfo[1] = string(argv[3]);
+    retrieveinfo[2] = string(argv[1]);
     //cerr<<retrieveinfo[0]<<"  "<<retrieveinfo[1];
     /*
     int i;
@@ -33,9 +34,9 @@ bool User::IsValidLogin(int userid, const string& password, string& type, string
     sqlite3* DB;
     int exit = 0;
     exit = sqlite3_open("./datafiles/logindb.db", &DB);
-    string data[2];
+    string data[3];
   
-    string sql("SELECT * FROM userlogin WHERE userid == " + to_string(userid));
+    string sql("SELECT * FROM userlogin WHERE userid == " + to_string(userid) + ";");
     if (exit) {
         std::cerr << "Error open DB " << sqlite3_errmsg(DB) << std::endl;
         return (-1);
@@ -50,6 +51,7 @@ bool User::IsValidLogin(int userid, const string& password, string& type, string
     else {
         cout << "Operation OK!" << endl;
         type = data[1];
+        name = data[2];
         //cerr<<type<<" "<<password;
         if(data[0] == password) {
             return 1;
@@ -69,7 +71,7 @@ bool User::UpdatePassword(int userid, const string& password) {
     exit = sqlite3_open("./datafiles/logindb.db", &DB);
     string data[2];
   
-    string sql("UPDATE userlogin set password = \""+ password +"\" WHERE userid == " + to_string(userid));
+    string sql("UPDATE userlogin set password = \""+ password +"\" WHERE userid == " + to_string(userid) + ";");
     if (exit) {
         std::cerr << "Error open DB " << sqlite3_errmsg(DB) << std::endl;
         return (0);

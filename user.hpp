@@ -15,13 +15,13 @@ class User
 	public: 
 		User(string n,int uid, string p): name_(n),userId_(uid),password_(p) {}
 		virtual ~User() {}
-		const string& GetName() {
+		string GetName() {
 			return this->name_;
 		}
 		int GetID() {
 			return this->userId_;
 		}
-		const string& GetPassword() {
+		string GetPassword() {
 			return this->password_;
 		}
 		//virtual bool IsUser(int x,string s);

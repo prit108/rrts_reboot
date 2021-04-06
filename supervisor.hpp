@@ -1,6 +1,5 @@
 #ifndef SUPERVISOR_HPP
 #define SUPERVISOR_HPP
-
 #include <iostream>
 #include <string>
 #include <vector>
@@ -19,10 +18,9 @@ class Supervisor : public User
 		int size = 0; 
 	public:
 		Supervisor(const string& n,const int& uid, const string& passwd):
-        User(n,uid,passwd){
-		}
+        User(n,uid,passwd){}
 		string GetUserType();
-		map<Complaint,int>& assignPriority();
+		//map<Complaint,int>& assignPriority();
 		void AddArea(Area p) {
 			this->assignedAreas_.push_back(p);
 		}
@@ -32,17 +30,19 @@ class Supervisor : public User
 		vector<Complaint> GetAssignedComplaints() {
 			return this->assignedComplaint_;
 		}
-		Complaint GetThisComplaint(string c){
-			for(Complaint x : this->assignedComplaint_){
-				if(x.ToString() == c)
-					return Complaint(x);
+		void SetResourcesThisComplaint(string c, int priority, tuple <int, int, double, int, int, int> res){
+			for(int i = 0; i < this->assignedComplaint_.size(); i++){
+				if(this->assignedComplaint_[i].ToString() == c){
+					this->assignedComplaint_[i].SetPriority(priority);
+					this->assignedComplaint_[i].SetResources(res);
+					return;
+				}
 			}
 		}
-
+		void SetComplaints(vector<Complaint> p);
+		static Supervisor GetAreaSupervisor(vector<Supervisor>& p, Area ar);
 		static bool GetAssignedAreaList(Supervisor& p);
 		static bool PushResourcesToDB(Complaint& p);
-		void SetComplaints(vector<Complaint>);
 		~Supervisor(){}
 };
-
 #endif

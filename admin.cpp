@@ -89,12 +89,12 @@ vector<pair<Complaint,int> > Admin::Schedule(vector<Complaint>& comp){
 			sWorkers -= get<3>(compAlloc[i].first.GetResources());
 			//freeing up workers allotted for only morning slot 
 			if (get<5>(compAlloc[i].first.GetResources()) == 1)
-				morningResources.first += get<0>(compAlloc[i].first.GetResources());
+				morningResources.first += get<3>(compAlloc[i].first.GetResources());
 
 			sMachines -= get<4>(compAlloc[i].first.GetResources());
 			//freeing up machines allotted for only morning slot 
 			if (get<5>(compAlloc[i].first.GetResources()) == 1)
-				morningResources.second += get<0>(compAlloc[i].first.GetResources());
+				morningResources.second += get<4>(compAlloc[i].first.GetResources());
 		}
 	}
 	//updating resources for evening slot allocation
@@ -148,11 +148,22 @@ int select1_callback(void *p_data, int num_fields, char **p_fields, char **p_col
 {
   vector<Complaint>* records = static_cast<vector<Complaint>*>(p_data);
   try {
+	cerr<<"CALL BACK 1"<<endl;
     int id = atoi(p_fields[0]);
-	string road = (p_fields[1]);
-	int cement = atoi(p_fields[2]), sand = atoi(p_fields[3]),  labor = atoi(p_fields[4]), machine = atoi(p_fields[5]), slot = atoi(p_fields[6]), priority = atoi(p_fields[7]);
-	string matter = p_fields[8];
-	records->push_back(Complaint(id, road, matter, make_tuple(cement,sand,0,labor,machine,slot), priority, false));
+	cerr<<"fine1"<<endl;
+	string road = string(p_fields[1]);
+	cerr<<"fine2"<<endl;
+	int cement = p_fields[2] == "" ? -1 : atoi(p_fields[2]);
+	int sand = p_fields[3] == "" ? -1 : atoi(p_fields[3]);
+	int labor = p_fields[4] == "" ? -1 : atoi(p_fields[4]);
+	int machine = p_fields[5] == "" ? -1 : atoi(p_fields[5]);
+	int slot = p_fields[6] == "" ? -1 : atoi(p_fields[6]);
+	int priority = p_fields[7] == "" ? -1 : atoi(p_fields[7]);
+	cerr<<"fine3"<<endl;
+	string matter = string(p_fields[8]);
+	cerr<<"fine4"<<endl;
+	records->push_back(Complaint(id, City::Mumbai().GetRoadObject(road), matter, make_tuple(cement,sand,0,labor,machine,slot), priority, false));
+	cerr<<"fine5"<<endl;
   }
   catch (...) {
     return 1;
@@ -166,9 +177,14 @@ int select2_callback(void *p_data, int num_fields, char **p_fields, char **p_col
   try {
     int id = atoi(p_fields[0]);
 	string road = (p_fields[1]);
-	int cement = atoi(p_fields[2]), sand = atoi(p_fields[3]),  labor = atoi(p_fields[4]), machine = atoi(p_fields[5]), slot = atoi(p_fields[6]), priority = atoi(p_fields[7]);
+	int cement = atoi(p_fields[2]);
+	int sand = atoi(p_fields[3]);
+	int labor = atoi(p_fields[4]);
+	int machine = atoi(p_fields[5]);
+	int slot = atoi(p_fields[6]);
+	int priority = atoi(p_fields[7]);
 	string matter = p_fields[8];
-	records->push_back(Complaint(id, road, matter, make_tuple(cement,sand,0,labor,machine,slot), priority,true));
+	records->push_back(Complaint(id, City::Mumbai().GetRoadObject(road), matter, make_tuple(cement,sand,0.0,labor,machine,slot), priority,true));
   }
   catch (...) {
     return 1;
@@ -209,11 +225,16 @@ bool Admin::GetTodayComplaint(vector<Complaint>& today) {
     std::cerr << "Could not open database.\n";
     return 0;
   	}
+	cerr<<"Opened Database"<<endl;
 
-  	vector<Complaint> records1 = select_stmt("SELECT * FROM freshcomplaints",1);
-	sql_stmt("DELETE FROM freshcomplaints");
-	vector<Complaint> records2 = select_stmt("SELECT * FROM pendingcomplaints", 0);
-	sql_stmt("DELETE FROM pendingcomplaints");
+  	vector<Complaint> records1 = select_stmt("SELECT * FROM freshcomplaints;",1);
+	cerr<<"Fetched frshcomplaints"<<endl;
+	//sql_stmt("DELETE FROM freshcomplaints;");
+	cerr<<"Cleared frsh list"<<endl;
+	vector<Complaint> records2 = select_stmt("SELECT * FROM pendingcomplaints;", 0);
+	cerr<<"Fetched pendcomplaints"<<endl;
+	//sql_stmt("DELETE FROM pendingcomplaints;");
+	cerr<<"Cleared pend list"<<endl;
 
 	for(Complaint x : records1) {
 		today.push_back(x);
