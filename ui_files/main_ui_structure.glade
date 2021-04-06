@@ -676,6 +676,7 @@
           <object class="GtkTextView" id="morning_textview">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
+            <property name="cursor-visible">False</property>
           </object>
           <packing>
             <property name="left-attach">0</property>
