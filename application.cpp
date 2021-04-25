@@ -3,6 +3,7 @@
 #include <vector>
 #include <fstream>
 #include <algorithm>
+#include <utility>
 #include <map>
 
 #include <gtkmm.h>
@@ -56,7 +57,7 @@ bool CheckPriority(const vector<Complaint>& comp) {
 
 string GetPrintableEntry(Complaint x) {
     string out = "ComplaintId#";
-    out = out + to_string(x.GetId()) + ",   " + x.GetRoad().ToString() + ",   Area " + City::Mumbai().GetArea(x.GetRoad()).GetName() + ",    Supervisor :" + Supervisor::GetAreaSupervisor(allSup, City::Mumbai().GetArea(x.GetRoad())).GetName() + ",    Resources :" + to_string(get<0>(x.GetResources()));
+    out = out + to_string(x.GetId()) + ",   " + x.GetRoad().ToString() + ",   Area " + City::Mumbai().GetArea(x.GetRoad()).GetName() + ",    Cement :" + to_string(get<0>(x.GetResources())) + ",    Sand :" + to_string(get<1>(x.GetResources())) + ",    Workers :" + to_string(get<3>(x.GetResources()))+ ",    Machines :" + to_string(get<4>(x.GetResources()));
     return out;
 }
 
@@ -69,7 +70,7 @@ class RRTS : public Gtk::ApplicationWindow {
     Gtk::Button* login_btn, *add_compmenu_btn, *add_comp_btn, *clerk_logout_btn, *clerk_changepass_btn, *sup_logout_btn, *admin_logout_btn;
     Gtk::Button *sup_changepass_btn, *admin_changepass_btn, *change_cancel_btn, *change_pass_btn;
     Gtk::Button *clerk_end_process_btn, *sup_assign_btn, *assign_priority_btn, *spvsr_end_process_btn;
-    Gtk::Button *sup_get_schedule_btn;
+    Gtk::Button *sup_get_schedule_btn, *sch_cancel_btn;
     Gtk::ComboBoxText* clerk_road_dropdown;
     RRTS():_builder(Gtk::Builder::create_from_file("./ui_files/main_ui_structure.glade"))
     {
@@ -135,9 +136,12 @@ class RRTS : public Gtk::ApplicationWindow {
 
             _builder->get_widget("show_schedule_btn", sup_get_schedule_btn);
             sup_get_schedule_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::sup_schedule_btn_clicked));
+
+            _builder->get_widget("sch_cancel_btn", sch_cancel_btn);
+            sch_cancel_btn->signal_clicked().connect(sigc::mem_fun(*this,&RRTS::changecancel_btn_clicked));
         }
         set_title("RRTS");
-        set_default_size(500,500);
+        set_default_size(400,400);
         show_all();
     }
     void login_btn_clicked() {
@@ -153,11 +157,23 @@ class RRTS : public Gtk::ApplicationWindow {
         string username;
         if(User::IsValidLogin(user_id, password, usertype, username)) {
             if(usertype == "clerk") {
+                Gtk::Label* m;
+                _builder->get_widget("clerk_add_comp_msg", m);
+                m->set_text("");
+                Gtk::Label* p;
+                _builder->get_widget("clerk_mainmenu_label", p);
+                p->set_text(p->get_text() + " " + username);
                 all_stack->set_visible_child("page1", ttype);
                 currentUser = new Clerk(username, user_id, password);
             }
             else if(usertype == "supervisor")
             {
+                Gtk::Label *p;
+                _builder->get_widget("sup_add_comp_msg", p);
+                p->set_text("");
+                Gtk::Label* mp;
+                _builder->get_widget("sup_mainmenu_label", mp);
+                mp->set_text("Welcome Supervisor : " + username);
                 currentUser = new Supervisor(username, user_id, password);
                 all_stack->set_visible_child("page7", ttype);
             } 
@@ -165,7 +181,7 @@ class RRTS : public Gtk::ApplicationWindow {
                 *currentUser = Admin::CityAdmin(username, user_id, password);
                 all_stack->set_visible_child("page8", ttype);
             }
-            else {
+            else if(usertype == "mayor"){
                 //Mayor functions
                 all_stack->set_visible_child("page9", ttype);
             }
@@ -202,7 +218,7 @@ class RRTS : public Gtk::ApplicationWindow {
             if(Clerk::AddComplaintToDB(p)) {
                 Gtk::Label* m;
                 _builder->get_widget("clerk_add_err_msg_label", m);
-                m->set_text("Successfully added complaint.");
+                m->set_text("Successfully added complaint on " + road);
                 fresh_complaints.push_back(p);
             }
             else {
@@ -274,6 +290,9 @@ class RRTS : public Gtk::ApplicationWindow {
             Gtk::Label *p;
             _builder->get_widget("sup_add_comp_msg", p);
             p->set_text("");
+            Gtk::Label* mp;
+            _builder->get_widget("sup_mainmenu_label", mp);
+            mp->set_text("Welcome Supervisor : " + currentUser->GetName());
             all_stack->set_visible_child("page7",ttype);
         }
         else if(currentUser->GetUserType() == "Admin") {
@@ -316,6 +335,8 @@ class RRTS : public Gtk::ApplicationWindow {
                 Gtk::ComboBoxText* sup_assign_complaint_list, *sup_assign_priority_list; 
                 _builder->get_widget("sup_assign_complaint_list", sup_assign_complaint_list);
                 _builder->get_widget("sup_assign_priority_list", sup_assign_priority_list);
+                sup_assign_priority_list->remove_all();
+                sup_assign_complaint_list->remove_all();
                 int i = 1;
                 for(Complaint c: allSup.at(allSup.size() - 1).GetAssignedComplaints()) {
                     sup_assign_complaint_list->append(c.ToString());
@@ -359,6 +380,7 @@ class RRTS : public Gtk::ApplicationWindow {
             return;
         }
         cerr<<complaint<<endl;
+        p->set_text(complaint+" priorities assigned.");
         allSup.at(allSup.size() - 1).SetResourcesThisComplaint(complaint, priority ,make_tuple(cement_bags, sand_bags, 0.0, labourers, machines, slot));
     }
     void spvsr_end_process_btn_clicked() {
@@ -381,6 +403,9 @@ class RRTS : public Gtk::ApplicationWindow {
                 Gtk::Label *p;
                 _builder->get_widget("sup_add_comp_msg", p);
                 p->set_text("");
+                Gtk::Label* mp;
+                _builder->get_widget("sup_mainmenu_label", mp);
+                mp->set_text("Welcome Supervisor : " + currentUser->GetName());
                 Gtk::StackTransitionType ttype = Gtk::STACK_TRANSITION_TYPE_NONE;
                 all_stack->set_visible_child("page7",ttype);
                 cerr<<"Flag is true."<<endl;
@@ -409,13 +434,15 @@ class RRTS : public Gtk::ApplicationWindow {
         else {
             completed_today.clear();
             pended_today.clear();
-            string morning_schedule = "\n", 
+            string morning_schedule = "\n";
             string evening_schedule = "\n";
+            string pended_schedule = "\n";
+
             /*
             vector<Complaint> pended_today;
             vector<Complaint> completed_today;
             */
-            int m = 0, e = 0;
+            int m = 0, e = 0, p = 0;
             for(auto x : todayschedule) {
                 if (x.second == 0) {
                     m++;
@@ -430,17 +457,19 @@ class RRTS : public Gtk::ApplicationWindow {
                 }
 
                 if (x.second == -1) {
+                    p++;
+                    pended_schedule += to_string(p) + ". " + GetPrintableEntry(x.first) + "\n";
                     pended_today.push_back(x.first);
                 }
             }
-            Glib::RefPtr<Gtk::TextBuffer> b1,b2;
-            b1->set_text(morning_schedule);
-            b2->set_text(evening_schedule);
-            Gtk::TextView *morn, *eve;
+            //Glib::RefPtr<Gtk::TextBuffer> b1,b2;
+            //b1->set_text(morning_schedule);
+            //b2->set_text(evening_schedule);
+            Gtk::Label *morn, *eve;
             _builder->get_widget("morning_textview", morn);
             _builder->get_widget("evening_textview", eve);
-            morn->set_buffer(b1);
-            eve->set_buffer(b2);
+            morn->set_text(morning_schedule);
+            eve->set_text(evening_schedule);
             Gtk::StackTransitionType ttype = Gtk::STACK_TRANSITION_TYPE_NONE;
             all_stack->set_visible_child("page5",ttype);
         }

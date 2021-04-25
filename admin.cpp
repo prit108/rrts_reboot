@@ -46,7 +46,7 @@ bool compareComplaints(pair<Complaint,int> C1, pair<Complaint,int> C2) {
 	//Priority assigned > type of area > task is pending or not > resources ( #workers > #machines > #sandbags > #cementbags)
 	if (c1.GetPriority() < c2.GetPriority())
 		return true;
-	else if (City::Mumbai().GetArea(c1.GetRoad()).GetPriority() < City::Mumbai().GetArea(c1.GetRoad()).GetPriority())
+	else if (City::Mumbai().GetArea(c1.GetRoad()).GetPriority() < City::Mumbai().GetArea(c2.GetRoad()).GetPriority())
 		return true;
 	else if (c1.IsPending() == true && c2.IsPending() == false)
 		return true;
@@ -69,6 +69,7 @@ bool Admin::ResourcesAvailable(Complaint c) {
 
 vector<pair<Complaint,int> > Admin::Schedule(vector<Complaint>& comp){
 	//Resources importance order: workers > machines > sand bags > cement bags
+	InitStatic();
 	int i, j, n;
 	n = comp.size();
 	vector<pair<Complaint, int> > compAlloc;

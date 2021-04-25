@@ -29,7 +29,6 @@ class Admin : public User {
 public:
 	static const Admin& CityAdmin(string n, int uid, string p) {
 		static Admin theObject(n,uid,p);
-		InitStatic();
 		return theObject;
 	}
 	/*bool IsUser(int x, string s) {

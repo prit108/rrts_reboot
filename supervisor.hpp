@@ -40,7 +40,7 @@ class Supervisor : public User
 			}
 		}
 		void SetComplaints(vector<Complaint> p);
-		static Supervisor GetAreaSupervisor(vector<Supervisor>& p, Area ar);
+		static string GetAreaSupervisor(vector<Supervisor>& p, Area ar);
 		static bool GetAssignedAreaList(Supervisor& p);
 		static bool PushResourcesToDB(Complaint& p);
 		~Supervisor(){}

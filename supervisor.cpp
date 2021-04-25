@@ -144,10 +144,10 @@ bool Supervisor::PushResourcesToDB(Complaint& p){
     return 0;
 }
 
-Supervisor Supervisor::GetAreaSupervisor(vector<Supervisor>& p, Area ar) {
-    for(Supervisor x : p) {
-        if(find(x.GetAssignedAreas().begin(), x.GetAssignedAreas().end(), ar) != x.GetAssignedAreas().end()){
-            return x;
+string Supervisor::GetAreaSupervisor(vector<Supervisor>& p, Area ar) {
+    for(int i = 0; i < p.size(); i++) {
+        if(find(p[i].GetAssignedAreas().begin(), p[i].GetAssignedAreas().end(), ar) != p[i].GetAssignedAreas().end()){
+            return p[i].GetName();
         }
     }
 }
